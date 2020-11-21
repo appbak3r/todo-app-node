@@ -1,11 +1,13 @@
 const express = require("express");
 const TodoModel = require("./models/TodoModel");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const jsonParser = bodyParser.json();
 
-
 const app = express();
+
+app.use(cors());
 
 app.get("/", (_req, res) => {
   res.json({
@@ -13,12 +15,15 @@ app.get("/", (_req, res) => {
   });
 });
 
-app.get("/todos", (req, res) => {
-  const { filter } = req.query;
+app.get("/todos", async (req, res) => {
+  const { filter = {} } = req.query;
 
-  TodoModel.find(filter).then((documents) => {
-    res.json(documents);
+  const documents = await TodoModel.find({
+    ...filter,
+    description: { $regex: new RegExp(`${filter.description || ""}`, "i") },
   });
+
+  res.json(documents);
 });
 
 app.post("/todos", jsonParser, (req, res) => {
@@ -34,8 +39,6 @@ app.post("/todos", jsonParser, (req, res) => {
 
 app.post("/todos/:id/toggle", async (req, res) => {
   const { id } = req.params;
-
-  console.log(id);
 
   try {
     const document = await TodoModel.findById(id);

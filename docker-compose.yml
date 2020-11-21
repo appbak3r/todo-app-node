@@ -1,0 +1,23 @@
+version: "3.7"
+
+services: 
+  node:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    depends_on: 
+      - mongodb
+    environment: 
+     - MONGODB_URL=mongodb://mongodb/todos
+    networks:
+      - backend-network
+  mongodb:
+    image: mongo:4.4.2
+    restart: unless-stopped
+    networks:
+      - backend-network
+networks:
+  backend-network:
+    driver: bridge
+    name: backend-network
